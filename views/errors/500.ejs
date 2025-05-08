@@ -1,0 +1,13 @@
+<div class="error-container">
+  <h1>500 - Server Error</h1>
+  <p>We're sorry, but something went wrong on our end.</p>
+  <p>Our technical team has been notified and is working to fix the issue.</p>
+  <p>Please try again later or return to the <a href="/">homepage</a>.</p>
+  
+  <% if (process.env.NODE_ENV !== 'production' && error) { %>
+    <div class="error-details">
+      <h2>Error Details:</h2>
+      <pre><%= error.stack %></pre>
+    </div>
+  <% } %>
+</div>

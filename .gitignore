@@ -1,0 +1,11 @@
+# Dependency directories
+node_modules/
+
+# Environment variables
+.env
+
+# Mac files
+.DS_Store
+
+# README file
+README.md
