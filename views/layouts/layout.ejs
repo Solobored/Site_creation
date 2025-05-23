@@ -5,7 +5,15 @@
   <a href="#main-content" class="skip-link">Skip to main content</a>
   <div id="wrapper">
     <%- include('../partials/header') %>
-    <%- include('../partials/navigation') %>
+    
+    <nav id="main-nav" aria-label="Main Navigation">
+      <button id="hamburger-menu" aria-label="Toggle menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <%- nav %>
+    </nav>
     
     <main id="main-content">
       <%- body %>

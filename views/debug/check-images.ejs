@@ -1,0 +1,105 @@
+<% if (title) { %>
+  <h1><%= title %></h1>
+<% } else {
+  res.redirect('/')
+} %>
+
+<div class="debug-container">
+  <h2>Directory Status</h2>
+  <div class="debug-section">
+    <h3>Images Directory</h3>
+    <p>Path: <%= dirStatus.imagesDir.path %></p>
+    <p>Exists: <%= dirStatus.imagesDir.exists ? 'Yes' : 'No' %></p>
+    
+    <h3>Vehicles Directory</h3>
+    <p>Path: <%= dirStatus.vehiclesDir.path %></p>
+    <p>Exists: <%= dirStatus.vehiclesDir.exists ? 'Yes' : 'No' %></p>
+    
+    <% if (dirStatus.vehiclesDir.files) { %>
+      <h4>Files in Vehicles Directory:</h4>
+      <ul>
+        <% dirStatus.vehiclesDir.files.forEach(file => { %>
+          <li><%= file %></li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+  
+  <h2>Image Status</h2>
+  <div class="debug-section">
+    <table class="debug-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Vehicle</th>
+          <th>Image Path</th>
+          <th>Thumbnail Path</th>
+          <th>Image Exists</th>
+          <th>Thumbnail Exists</th>
+          <th>Public URL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% imageStatus.forEach(item => { %>
+          <tr>
+            <td><%= item.id %></td>
+            <td><%= item.make %> <%= item.model %></td>
+            <td><%= item.imagePath %></td>
+            <td><%= item.thumbnailPath %></td>
+            <td class="<%= item.imageExists ? 'success' : 'error' %>">
+              <%= item.imageExists ? 'Yes' : 'No' %>
+            </td>
+            <td class="<%= item.thumbnailExists ? 'success' : 'error' %>">
+              <%= item.thumbnailExists ? 'Yes' : 'No' %>
+            </td>
+            <td>
+              <a href="<%= item.publicImageUrl %>" target="_blank">View Image</a> | 
+              <a href="<%= item.publicThumbnailUrl %>" target="_blank">View Thumbnail</a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .debug-container {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+  }
+  
+  .debug-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .debug-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .debug-table th, .debug-table td {
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    text-align: left;
+  }
+  
+  .debug-table th {
+    background-color: #f2f2f2;
+  }
+  
+  .success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .error {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+</style>
