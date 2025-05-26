@@ -2,6 +2,8 @@
 const express = require("express")
 const expressLayouts = require("express-ejs-layouts")
 const path = require("path")
+const session = require("express-session")
+const flash = require("connect-flash")
 const statics = require("./routes/static")
 const inventoryRoute = require("./routes/inventoryRoute")
 const debugRoute = require("./routes/debugRoute")
@@ -23,8 +25,28 @@ app.set("views", path.join(__dirname, "views")) // Explicitly set views director
 app.use(expressLayouts)
 app.set("layout", "./layouts/layout") // not at views root
 
+// Session middleware
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    name: "sessionId",
+  }),
+)
+
+// Flash message middleware
+app.use(flash())
+
+// Middleware to make flash messages available to all views
+app.use((req, res, next) => {
+  res.locals.messages = req.flash()
+  next()
+})
+
 // Middleware
 app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
 
 // Routes
 app.use(statics)
@@ -41,6 +63,7 @@ app.get("/", async (req, res, next) => {
     })
   } catch (error) {
     console.error("Error in index route:", error)
+    // Fallback to render the page even if nav fails
     res.render("index", {
       title: "Home",
       nav: "<ul id='nav-items'><li><a href='/'>Home</a></li></ul>",
@@ -75,7 +98,7 @@ app.get("/trigger-error", (req, res, next) => {
   next(err)
 })
 
-// 404 Error Handler 
+// 404 Error Handler - Must be after all other routes
 app.use(async (req, res, next) => {
   try {
     const nav = await utilities.getNav()

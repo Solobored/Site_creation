@@ -1,0 +1,285 @@
+<% if (title) { %>
+  <h1><%= title %></h1>
+<% } else {
+  res.redirect('/')
+} %>
+
+<% if (messages.notice) { %>
+  <div class="notice">
+    <%= messages.notice %>
+  </div>
+<% } %>
+
+<% if (errors) { %>
+  <div class="error-messages">
+    <ul>
+      <% errors.array().forEach(error => { %>
+        <li><%= error.msg %></li>
+      <% }) %>
+    </ul>
+  </div>
+<% } %>
+
+<div class="form-container">
+  <form action="/inv/add-inventory" method="post" id="inventoryForm">
+    <fieldset>
+      <legend>Add New Vehicle</legend>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="classification_id">Classification:</label>
+          <%- classificationSelect %>
+          <span class="form-help">Choose the vehicle classification.</span>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="inv_make">Make:</label>
+          <input 
+            type="text" 
+            id="inv_make" 
+            name="inv_make" 
+            value="<%= locals.inv_make || '' %>"
+            required
+            minlength="3"
+            placeholder="Enter vehicle make"
+          >
+          <span class="form-help">Minimum 3 characters required.</span>
+        </div>
+        
+        <div class="form-group">
+          <label for="inv_model">Model:</label>
+          <input 
+            type="text" 
+            id="inv_model" 
+            name="inv_model" 
+            value="<%= locals.inv_model || '' %>"
+            required
+            minlength="3"
+            placeholder="Enter vehicle model"
+          >
+          <span class="form-help">Minimum 3 characters required.</span>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="inv_year">Year:</label>
+          <input 
+            type="number" 
+            id="inv_year" 
+            name="inv_year" 
+            value="<%= locals.inv_year || '' %>"
+            required
+            min="1900"
+            max="<%= new Date().getFullYear() + 1 %>"
+            placeholder="Enter 4-digit year"
+          >
+          <span class="form-help">4-digit year required.</span>
+        </div>
+        
+        <div class="form-group">
+          <label for="inv_color">Color:</label>
+          <input 
+            type="text" 
+            id="inv_color" 
+            name="inv_color" 
+            value="<%= locals.inv_color || '' %>"
+            required
+            placeholder="Enter vehicle color"
+          >
+          <span class="form-help">Vehicle color is required.</span>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="inv_price">Price:</label>
+          <input 
+            type="number" 
+            id="inv_price" 
+            name="inv_price" 
+            value="<%= locals.inv_price || '' %>"
+            required
+            min="0"
+            step="0.01"
+            placeholder="Enter price (decimal or integer)"
+          >
+          <span class="form-help">Price can be decimal or integer.</span>
+        </div>
+        
+        <div class="form-group">
+          <label for="inv_miles">Mileage:</label>
+          <input 
+            type="number" 
+            id="inv_miles" 
+            name="inv_miles" 
+            value="<%= locals.inv_miles || '' %>"
+            required
+            min="0"
+            placeholder="Enter mileage (digits only)"
+          >
+          <span class="form-help">Digits only, no commas.</span>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="inv_description">Description:</label>
+        <textarea 
+          id="inv_description" 
+          name="inv_description" 
+          required
+          rows="4"
+          placeholder="Enter vehicle description"
+        ><%= locals.inv_description || '' %></textarea>
+        <span class="form-help">Provide a detailed description of the vehicle.</span>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="inv_image">Image Path:</label>
+          <input 
+            type="text" 
+            id="inv_image" 
+            name="inv_image" 
+            value="<%= locals.inv_image || '/images/vehicles/no-image.png' %>"
+            required
+            placeholder="/images/vehicles/vehicle-name.jpg"
+          >
+          <span class="form-help">Path to the full-size vehicle image.</span>
+        </div>
+        
+        <div class="form-group">
+          <label for="inv_thumbnail">Thumbnail Path:</label>
+          <input 
+            type="text" 
+            id="inv_thumbnail" 
+            name="inv_thumbnail" 
+            value="<%= locals.inv_thumbnail || '/images/vehicles/no-image-tn.png' %>"
+            required
+            placeholder="/images/vehicles/vehicle-name-tn.jpg"
+          >
+          <span class="form-help">Path to the thumbnail image.</span>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <input type="submit" value="Add Vehicle" class="btn btn-primary">
+      </div>
+    </fieldset>
+  </form>
+</div>
+
+<script>
+  // Client-side validation
+  document.getElementById('inventoryForm').addEventListener('submit', function(e) {
+    let isValid = true;
+    const form = this;
+    
+    // Validate all required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    requiredFields.forEach(field => {
+      if (!field.value.trim()) {
+        isValid = false;
+        field.classList.add('invalid');
+      } else {
+        field.classList.remove('invalid');
+        field.classList.add('valid');
+      }
+    });
+    
+    // Validate year
+    const year = document.getElementById('inv_year').value;
+    const currentYear = new Date().getFullYear();
+    if (year < 1900 || year > currentYear + 1) {
+      isValid = false;
+      document.getElementById('inv_year').classList.add('invalid');
+    }
+    
+    // Validate mileage (digits only)
+    const miles = document.getElementById('inv_miles').value;
+    if (!/^\d+$/.test(miles)) {
+      isValid = false;
+      document.getElementById('inv_miles').classList.add('invalid');
+    }
+    
+    // Validate price
+    const price = document.getElementById('inv_price').value;
+    if (isNaN(price) || parseFloat(price) < 0) {
+      isValid = false;
+      document.getElementById('inv_price').classList.add('invalid');
+    }
+    
+    if (!isValid) {
+      e.preventDefault();
+      alert('Please correct the highlighted fields before submitting.');
+      return false;
+    }
+  });
+  
+  // Real-time validation feedback
+  document.querySelectorAll('input, select, textarea').forEach(field => {
+    field.addEventListener('input', function() {
+      validateField(this);
+    });
+    
+    field.addEventListener('blur', function() {
+      validateField(this);
+    });
+  });
+  
+  function validateField(field) {
+    const value = field.value.trim();
+    
+    // Remove previous validation classes
+    field.classList.remove('valid', 'invalid');
+    
+    if (field.hasAttribute('required') && !value) {
+      field.classList.add('invalid');
+      return;
+    }
+    
+    // Specific validations
+    switch(field.id) {
+      case 'inv_year':
+        const currentYear = new Date().getFullYear();
+        if (value && (value < 1900 || value > currentYear + 1)) {
+          field.classList.add('invalid');
+        } else if (value) {
+          field.classList.add('valid');
+        }
+        break;
+        
+      case 'inv_miles':
+        if (value && !/^\d+$/.test(value)) {
+          field.classList.add('invalid');
+        } else if (value) {
+          field.classList.add('valid');
+        }
+        break;
+        
+      case 'inv_price':
+        if (value && (isNaN(value) || parseFloat(value) < 0)) {
+          field.classList.add('invalid');
+        } else if (value) {
+          field.classList.add('valid');
+        }
+        break;
+        
+      case 'inv_make':
+      case 'inv_model':
+        if (value && value.length < 3) {
+          field.classList.add('invalid');
+        } else if (value) {
+          field.classList.add('valid');
+        }
+        break;
+        
+      default:
+        if (value) {
+          field.classList.add('valid');
+        }
+    }
+  }
+</script>

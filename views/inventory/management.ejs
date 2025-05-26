@@ -1,0 +1,32 @@
+<% if (title) { %>
+  <h1><%= title %></h1>
+<% } else {
+  res.redirect('/')
+} %>
+
+<% if (messages.notice) { %>
+  <div class="notice">
+    <%= messages.notice %>
+  </div>
+<% } %>
+
+<div class="management-container">
+  <div class="management-section">
+    <h2>Inventory Management</h2>
+    <p>Welcome to the vehicle inventory management system. Use the links below to manage your vehicle classifications and inventory.</p>
+    
+    <div class="management-links">
+      <div class="management-card">
+        <h3>Add New Classification</h3>
+        <p>Create a new vehicle classification category.</p>
+        <a href="/inv/add-classification" class="btn btn-primary">Add Classification</a>
+      </div>
+      
+      <div class="management-card">
+        <h3>Add New Vehicle</h3>
+        <p>Add a new vehicle to the inventory.</p>
+        <a href="/inv/add-inventory" class="btn btn-primary">Add Vehicle</a>
+      </div>
+    </div>
+  </div>
+</div>

@@ -25,6 +25,7 @@ Util.getNav = async (req, res, next) => {
     return list
   } catch (error) {
     console.error("Util.getNav error:", error)
+    // Fallback navigation when database is unavailable
     let list = "<ul id='nav-items'>"
     list += '<li><a href="/" title="Home page">Home</a></li>'
     list += '<li><a href="/inv/type/1" title="Custom vehicles">Custom</a></li>'
@@ -135,6 +136,31 @@ Util.buildVehicleDetail = async (vehicle) => {
   detail += "</div>" // Close vehicle-detail
 
   return detail
+}
+
+/* ****************************************
+ * Middleware For Handling Errors
+ * Wrap other function in this for
+ * General Error Handling
+ **************************************** */
+Util.handleErrors = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
+
+/* ****************************************
+ * Build classification list for select dropdown
+ **************************************** */
+Util.buildClassificationList = async (classification_id = null) => {
+  const data = await invModel.getClassifications()
+  let classificationList = '<select name="classification_id" id="classificationList" required>'
+  classificationList += "<option value=''>Choose a Classification</option>"
+  data.rows.forEach((row) => {
+    classificationList += '<option value="' + row.classification_id + '"'
+    if (classification_id != null && row.classification_id == classification_id) {
+      classificationList += " selected "
+    }
+    classificationList += ">" + row.classification_name + "</option>"
+  })
+  classificationList += "</select>"
+  return classificationList
 }
 
 module.exports = Util
