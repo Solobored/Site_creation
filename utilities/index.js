@@ -1,6 +1,9 @@
 const invModel = require("../models/inventory-model")
 const Util = {}
 
+// Add this import at the top
+const jwtUtils = require("./jwt-utils")
+
 /* ************************
  * Constructs the nav HTML unordered list
  ************************** */
@@ -162,5 +165,10 @@ Util.buildClassificationList = async (classification_id = null) => {
   classificationList += "</select>"
   return classificationList
 }
+
+// Add these functions to the Util object before module.exports
+Util.checkJWTToken = jwtUtils.checkJWTToken
+Util.checkLogin = jwtUtils.checkLogin
+Util.checkAccountType = jwtUtils.checkAccountType
 
 module.exports = Util

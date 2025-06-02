@@ -1,0 +1,142 @@
+<% if (title) { %>
+  <h1><%= title %></h1>
+<% } else {
+  res.redirect('/')
+} %>
+
+<% if (messages.notice) { %>
+  <div class="notice">
+    <%= messages.notice %>
+  </div>
+<% } %>
+
+<% if (errors) { %>
+  <div class="error-messages">
+    <ul>
+      <% errors.array().forEach(error => { %>
+        <li><%= error.msg %></li>
+      <% }) %>
+    </ul>
+  </div>
+<% } %>
+
+<div class="form-container">
+  <!-- Account Update Form -->
+  <form action="/account/update" method="post" id="updateForm">
+    <fieldset>
+      <legend>Update Account Information</legend>
+      
+      <div class="form-group">
+        <label for="account_firstname">First Name:</label>
+        <input 
+          type="text" 
+          id="account_firstname" 
+          name="account_firstname" 
+          value="<%= locals.account_firstname || '' %>"
+          required
+          placeholder="Enter first name"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="account_lastname">Last Name:</label>
+        <input 
+          type="text" 
+          id="account_lastname" 
+          name="account_lastname" 
+          value="<%= locals.account_lastname || '' %>"
+          required
+          minlength="2"
+          placeholder="Enter last name"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="account_email">Email Address:</label>
+        <input 
+          type="email" 
+          id="account_email" 
+          name="account_email" 
+          value="<%= locals.account_email || '' %>"
+          required
+          placeholder="Enter email address"
+        >
+      </div>
+      
+      <input type="hidden" name="account_id" value="<%= locals.account_id %>">
+      
+      <div class="form-group">
+        <input type="submit" value="Update Account" class="btn btn-primary">
+      </div>
+    </fieldset>
+  </form>
+
+  <!-- Password Change Form -->
+  <form action="/account/update-password" method="post" id="passwordForm">
+    <fieldset>
+      <legend>Change Password</legend>
+      
+      <div class="form-group">
+        <label for="account_password">New Password:</label>
+        <input 
+          type="password" 
+          id="account_password" 
+          name="account_password" 
+          required
+          pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$"
+          placeholder="Enter new password"
+        >
+        <span class="form-help">
+          Password must be at least 12 characters and contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.
+        </span>
+      </div>
+      
+      <input type="hidden" name="account_id" value="<%= locals.account_id %>">
+      
+      <div class="form-group">
+        <input type="submit" value="Change Password" class="btn btn-primary">
+      </div>
+    </fieldset>
+  </form>
+</div>
+
+<script>
+  // Client-side validation for account update form
+  document.getElementById('updateForm').addEventListener('submit', function(e) {
+    let isValid = true;
+    
+    const firstName = document.getElementById('account_firstname').value.trim();
+    const lastName = document.getElementById('account_lastname').value.trim();
+    const email = document.getElementById('account_email').value.trim();
+    
+    if (!firstName) {
+      isValid = false;
+      alert('First name is required.');
+    }
+    
+    if (!lastName || lastName.length < 2) {
+      isValid = false;
+      alert('Last name must be at least 2 characters.');
+    }
+    
+    if (!email || !email.includes('@')) {
+      isValid = false;
+      alert('Valid email is required.');
+    }
+    
+    if (!isValid) {
+      e.preventDefault();
+    }
+  });
+
+  // Client-side validation for password form
+  document.getElementById('passwordForm').addEventListener('submit', function(e) {
+    const password = document.getElementById('account_password').value;
+    const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
+    
+    if (!pattern.test(password)) {
+      e.preventDefault();
+      alert('Password must be at least 12 characters and contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.');
+    }
+  });
+</script>

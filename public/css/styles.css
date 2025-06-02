@@ -80,16 +80,29 @@ img {
   transform: scale(1.05);
 }
 
+#tools {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#tools span {
+  color: #0056b3;
+  font-weight: bold;
+}
+
 #tools a {
   padding: 0.5rem;
   color: #0056b3;
   transition: all 0.3s ease;
+  border-radius: 4px;
 }
 
 #tools a:hover,
 #tools a:focus {
   color: #003d7a;
-  text-decoration: underline;
+  background-color: #f8f9fa;
+  text-decoration: none;
 }
 
 /* Navigation Styles */
@@ -887,6 +900,7 @@ legend {
   box-shadow: 0 0 5px rgba(0, 86, 179, 0.3);
 }
 
+/* Form validation styles */
 .form-group input.valid,
 .form-group select.valid,
 .form-group textarea.valid {
@@ -991,5 +1005,51 @@ legend {
 
   .form-container {
     padding: 0 0.5rem;
+  }
+}
+
+/* Account Management Styles */
+.account-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.account-links {
+  margin: 2rem 0;
+}
+
+.account-links a {
+  display: inline-block;
+  margin-right: 1rem;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.account-links a:hover {
+  background-color: #e9ecef;
+  transform: translateY(-2px);
+}
+
+/* Responsive header */
+@media screen and (max-width: 768px) {
+  #tools {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-end;
+  }
+
+  #tools span {
+    font-size: 0.9rem;
+  }
+
+  #tools a {
+    font-size: 0.9rem;
+    padding: 0.3rem 0.6rem;
   }
 }

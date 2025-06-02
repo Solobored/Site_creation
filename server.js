@@ -13,6 +13,10 @@ require("dotenv").config()
 const port = process.env.PORT || 5500
 console.log(`Environment PORT: ${process.env.PORT || 5500}`)
 
+// Add this import near the top with other requires
+const cookieParser = require("cookie-parser")
+const accountRoute = require("./routes/accountRoute")
+
 // Check if DATABASE_URL is set
 if (!process.env.DATABASE_URL) {
   console.error("WARNING: DATABASE_URL is not set in .env file")
@@ -48,9 +52,17 @@ app.use((req, res, next) => {
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
+// Add cookie parser middleware after session middleware
+app.use(cookieParser())
+
+// Add JWT token check middleware
+app.use(require("./utilities").checkJWTToken)
+
 // Routes
 app.use(statics)
 app.use("/inv", inventoryRoute)
+// Add account routes after inventory routes
+app.use("/account", accountRoute)
 app.use("/debug", debugRoute)
 
 // Index route
