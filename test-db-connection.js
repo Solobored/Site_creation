@@ -1,55 +1,80 @@
 require("dotenv").config()
 const { Pool } = require("pg")
 
-async function testConnection() {
-  console.log("Testing database connection...")
-  console.log(`Using connection string: ${process.env.DATABASE_URL.replace(/:[^:]*@/, ":****@")}`)
+async function testDatabaseConnection() {
+  console.log("🔍 Testing database connection...")
+  console.log(`DATABASE_URL: ${process.env.DATABASE_URL ? "Set (hidden for security)" : "NOT SET"}`)
 
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-  })
-
+  // Parse the connection string to show parts without exposing password
   try {
-    console.log("Attempting to connect to database...")
-    const result = await pool.query("SELECT NOW()")
-    console.log("✅ Connection successful!")
-    console.log(`Server time: ${result.rows[0].now}`)
-
-    // Test if tables exist
-    try {
-      console.log("\nChecking for required tables...")
-      const tables = await pool.query(`
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name IN ('classification', 'inventory', 'account')
-      `)
-
-      const tableNames = tables.rows.map((row) => row.table_name)
-      console.log("Found tables:", tableNames.join(", "))
-
-      if (tableNames.includes("classification")) {
-        const classCount = await pool.query("SELECT COUNT(*) FROM classification")
-        console.log(`Classification table has ${classCount.rows[0].count} records`)
-      }
-
-      if (tableNames.includes("inventory")) {
-        const invCount = await pool.query("SELECT COUNT(*) FROM inventory")
-        console.log(`Inventory table has ${invCount.rows[0].count} records`)
-      }
-    } catch (err) {
-      console.error("❌ Error checking tables:", err.message)
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL)
+      console.log(`Host: ${url.hostname}`)
+      console.log(`Port: ${url.port || "default"}`)
+      console.log(`Database: ${url.pathname.substring(1)}`)
+      console.log(`Username: ${url.username}`)
+      console.log(`Password: ${url.password ? "Set (hidden)" : "NOT SET"}`)
     }
-  } catch (err) {
-    console.error("❌ Connection failed:", err.message)
-    console.log("\nPossible solutions:")
-    console.log("1. Make sure PostgreSQL is running")
-    console.log("2. Check your username and password")
-    console.log("3. Verify the database exists")
-    console.log("4. Check if PostgreSQL is listening on the specified port")
-  } finally {
-    await pool.end()
+  } catch (parseError) {
+    console.log(`Error parsing DATABASE_URL: ${parseError.message}`)
+    console.log("Make sure your DATABASE_URL is in the format: postgres://username:password@hostname:port/database")
   }
+
+  // Try connecting with SSL disabled
+  try {
+    console.log("\n🔄 Attempting connection WITHOUT SSL...")
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: false,
+    })
+
+    const result = await pool.query("SELECT NOW() as time")
+    console.log("✅ Connection successful!")
+    console.log(`Server time: ${result.rows[0].time}`)
+    await pool.end()
+  } catch (error) {
+    console.log(`❌ Connection failed without SSL: ${error.message}`)
+  }
+
+  // Try connecting with SSL but reject unauthorized disabled
+  try {
+    console.log("\n🔄 Attempting connection with SSL (rejectUnauthorized: false)...")
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    })
+
+    const result = await pool.query("SELECT NOW() as time")
+    console.log("✅ Connection successful!")
+    console.log(`Server time: ${result.rows[0].time}`)
+    await pool.end()
+  } catch (error) {
+    console.log(`❌ Connection failed with SSL: ${error.message}`)
+  }
+
+  // Try connecting with default settings
+  try {
+    console.log("\n🔄 Attempting connection with default settings...")
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+    })
+
+    const result = await pool.query("SELECT NOW() as time")
+    console.log("✅ Connection successful!")
+    console.log(`Server time: ${result.rows[0].time}`)
+    await pool.end()
+  } catch (error) {
+    console.log(`❌ Connection failed with default settings: ${error.message}`)
+  }
+
+  console.log("\n📋 Troubleshooting steps:")
+  console.log("1. Check if the database server is running")
+  console.log("2. Verify the hostname is correct and accessible")
+  console.log("3. Check if your IP is allowed in the database firewall settings")
+  console.log("4. Try using a different network (some networks block database ports)")
+  console.log("5. For Render.com databases, make sure your database service is active")
 }
 
-testConnection()
+testDatabaseConnection()

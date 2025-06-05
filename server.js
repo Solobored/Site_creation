@@ -23,6 +23,16 @@ if (!process.env.DATABASE_URL) {
   console.log("Please set up your DATABASE_URL in the .env file")
 }
 
+// Check required environment variables
+const requiredEnvVars = ["SESSION_SECRET", "ACCESS_TOKEN_SECRET"]
+requiredEnvVars.forEach((envVar) => {
+  if (!process.env[envVar]) {
+    console.error(`WARNING: ${envVar} is not set in .env file`)
+  } else {
+    console.log(`✅ ${envVar} is configured`)
+  }
+})
+
 // View Engine and Templates
 app.set("view engine", "ejs")
 app.set("views", path.join(__dirname, "views")) // Explicitly set views directory
@@ -57,6 +67,17 @@ app.use(cookieParser())
 
 // Add JWT token check middleware
 app.use(require("./utilities").checkJWTToken)
+
+// Add request logging for debugging
+app.use((req, res, next) => {
+  if (req.path.includes("/account/")) {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`)
+    if (req.method === "POST") {
+      console.log("POST data:", { ...req.body, account_password: req.body.account_password ? "[HIDDEN]" : undefined })
+    }
+  }
+  next()
+})
 
 // Routes
 app.use(statics)
