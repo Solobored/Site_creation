@@ -16,6 +16,7 @@ console.log(`Environment PORT: ${process.env.PORT || 5500}`)
 // Add this import near the top with other requires
 const cookieParser = require("cookie-parser")
 const accountRoute = require("./routes/accountRoute")
+const reviewRoute = require("./routes/reviewRoute") // Added import
 
 // Check if DATABASE_URL is set
 if (!process.env.DATABASE_URL) {
@@ -23,15 +24,37 @@ if (!process.env.DATABASE_URL) {
   console.log("Please set up your DATABASE_URL in the .env file")
 }
 
-// Check required environment variables
-const requiredEnvVars = ["SESSION_SECRET", "ACCESS_TOKEN_SECRET"]
-requiredEnvVars.forEach((envVar) => {
-  if (!process.env[envVar]) {
-    console.error(`WARNING: ${envVar} is not set in .env file`)
+// Check and generate fallback environment variables for development
+const requiredEnvVars = {
+  SESSION_SECRET: process.env.SESSION_SECRET || "dev-session-secret-change-in-production",
+  ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET || "dev-access-token-secret-change-in-production",
+}
+
+// Warn about missing environment variables
+Object.entries(requiredEnvVars).forEach(([key, value]) => {
+  if (!process.env[key]) {
+    console.error(`❌ WARNING: ${key} is not set in environment variables`)
+    if (process.env.NODE_ENV === "production") {
+      console.error(`🚨 CRITICAL: ${key} must be set in production!`)
+    } else {
+      console.log(`🔧 Using fallback value for ${key} in development`)
+      process.env[key] = value
+    }
   } else {
-    console.log(`✅ ${envVar} is configured`)
+    console.log(`✅ ${key} is configured`)
   }
 })
+
+// Exit if critical environment variables are missing in production
+if (process.env.NODE_ENV === "production") {
+  const missingVars = ["SESSION_SECRET", "ACCESS_TOKEN_SECRET"].filter((key) => !process.env[key])
+  if (missingVars.length > 0) {
+    console.error("🚨 CRITICAL ERROR: Missing required environment variables in production:")
+    missingVars.forEach((key) => console.error(`   - ${key}`))
+    console.error("Please set these variables in your Render.com environment settings")
+    process.exit(1)
+  }
+}
 
 // View Engine and Templates
 app.set("view engine", "ejs")
@@ -39,13 +62,18 @@ app.set("views", path.join(__dirname, "views")) // Explicitly set views director
 app.use(expressLayouts)
 app.set("layout", "./layouts/layout") // not at views root
 
-// Session middleware
+// Session middleware with better production settings
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-secret-key",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     name: "sessionId",
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    },
   }),
 )
 
@@ -68,23 +96,39 @@ app.use(cookieParser())
 // Add JWT token check middleware
 app.use(require("./utilities").checkJWTToken)
 
-// Add request logging for debugging
-app.use((req, res, next) => {
-  if (req.path.includes("/account/")) {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`)
-    if (req.method === "POST") {
-      console.log("POST data:", { ...req.body, account_password: req.body.account_password ? "[HIDDEN]" : undefined })
+// Add request logging for debugging (only in development or when needed)
+if (process.env.NODE_ENV !== "production" || process.env.DEBUG_REQUESTS === "true") {
+  app.use((req, res, next) => {
+    if (req.path.includes("/account/")) {
+      console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`)
+      if (req.method === "POST") {
+        console.log("POST data:", { ...req.body, account_password: req.body.account_password ? "[HIDDEN]" : undefined })
+      }
     }
-  }
-  next()
-})
+    next()
+  })
+}
 
 // Routes
 app.use(statics)
 app.use("/inv", inventoryRoute)
 // Add account routes after inventory routes
 app.use("/account", accountRoute)
+app.use("/reviews", reviewRoute) // Added route
 app.use("/debug", debugRoute)
+
+// Environment check route (for debugging)
+app.get("/env-check", (req, res) => {
+  const envStatus = {
+    NODE_ENV: process.env.NODE_ENV || "development",
+    DATABASE_URL: process.env.DATABASE_URL ? "Set" : "Not set",
+    SESSION_SECRET: process.env.SESSION_SECRET ? "Set" : "Not set",
+    ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET ? "Set" : "Not set",
+    PORT: process.env.PORT || "5500 (default)",
+  }
+
+  res.json(envStatus)
+})
 
 // Index route
 app.get("/", async (req, res, next) => {
@@ -171,4 +215,5 @@ app.use(async (err, req, res, next) => {
 // Server Listener
 app.listen(port, () => {
   console.log(`CSE Motors running on port ${port}`)
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`)
 })

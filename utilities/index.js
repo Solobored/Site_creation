@@ -1,4 +1,5 @@
 const invModel = require("../models/inventory-model")
+const reviewModel = require("../models/review-model")
 const Util = {}
 
 // Add this import at the top
@@ -94,6 +95,9 @@ Util.buildClassificationGrid = async (data) => {
  * Build the vehicle detail view HTML
  * ************************************ */
 Util.buildVehicleDetail = async (vehicle) => {
+  // Get average rating for this vehicle
+  const ratingData = await reviewModel.getAverageRating(vehicle.inv_id)
+
   let detail = '<div class="vehicle-detail">'
 
   // Vehicle image and info container
@@ -110,6 +114,27 @@ Util.buildVehicleDetail = async (vehicle) => {
   detail += '<div class="vehicle-price">'
   detail += `<span class="price-label">Price: </span>`
   detail += `<span class="price-value">$${new Intl.NumberFormat("en-US").format(vehicle.inv_price)}</span>`
+  detail += "</div>"
+
+  // Vehicle rating
+  detail += '<div class="vehicle-rating">'
+  if (ratingData.average_rating) {
+    detail += '<div class="rating-stars">'
+    for (let i = 1; i <= 5; i++) {
+      if (i <= Math.floor(ratingData.average_rating)) {
+        detail += '<span class="star filled">★</span>'
+      } else if (i - 0.5 <= ratingData.average_rating) {
+        detail += '<span class="star half-filled">★</span>'
+      } else {
+        detail += '<span class="star">☆</span>'
+      }
+    }
+    detail += `<span class="rating-value">${ratingData.average_rating}/5</span>`
+    detail += "</div>"
+    detail += `<p><a href="/reviews/vehicle/${vehicle.inv_id}">${ratingData.review_count} ${ratingData.review_count === 1 ? "review" : "reviews"}</a></p>`
+  } else {
+    detail += `<p><a href="/reviews/vehicle/${vehicle.inv_id}">No reviews yet</a></p>`
+  }
   detail += "</div>"
 
   // Vehicle specifications
@@ -132,6 +157,7 @@ Util.buildVehicleDetail = async (vehicle) => {
   // Call to action
   detail += '<div class="vehicle-cta">'
   detail += '<button class="own-today-btn">Contact Us About This Vehicle</button>'
+  detail += `<a href="/reviews/vehicle/${vehicle.inv_id}" class="btn btn-secondary">Read Reviews</a>`
   detail += "</div>"
 
   detail += "</div>" // Close vehicle-info

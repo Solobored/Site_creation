@@ -1,3 +1,5 @@
+@import url("reviews.css");
+
 /* Global Styles */
 * {
   margin: 0;
@@ -1034,22 +1036,4 @@ legend {
 .account-links a:hover {
   background-color: #e9ecef;
   transform: translateY(-2px);
-}
-
-/* Responsive header */
-@media screen and (max-width: 768px) {
-  #tools {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: flex-end;
-  }
-
-  #tools span {
-    font-size: 0.9rem;
-  }
-
-  #tools a {
-    font-size: 0.9rem;
-    padding: 0.3rem 0.6rem;
-  }
 }

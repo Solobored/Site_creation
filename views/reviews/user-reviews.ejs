@@ -1,0 +1,46 @@
+<% if (title) { %>
+  <h1><%= title %></h1>
+<% } else {
+  res.redirect('/')
+} %>
+
+<% if (messages.notice) { %>
+  <div class="notice">
+    <%= messages.notice %>
+  </div>
+<% } %>
+
+<div class="user-reviews-container">
+  <% if (reviews.length === 0) { %>
+    <div class="no-reviews">
+      <p>You haven't written any reviews yet.</p>
+      <a href="/" class="btn btn-primary">Browse Vehicles</a>
+    </div>
+  <% } else { %>
+    <div class="reviews-list">
+      <% reviews.forEach(review => { %>
+        <div class="review-item">
+          <div class="review-vehicle">
+            <h3><a href="/inv/detail/<%= review.inv_id %>"><%= review.inv_year %> <%= review.inv_make %> <%= review.inv_model %></a></h3>
+          </div>
+          <div class="review-header">
+            <div class="review-rating">
+              <% for (let i = 1; i <= 5; i++) { %>
+                <span class="star <%= i <= review.review_rating ? 'filled' : '' %>"><%= i <= review.review_rating ? '★' : '☆' %></span>
+              <% } %>
+            </div>
+            <span class="review-date"><%= new Date(review.review_date).toLocaleDateString() %></span>
+          </div>
+          <div class="review-content">
+            <p><%= review.review_text %></p>
+          </div>
+          <div class="review-actions">
+            <a href="/reviews/edit/<%= review.review_id %>" class="btn btn-small">Edit</a>
+            <a href="/reviews/delete/<%= review.review_id %>" class="btn btn-small btn-danger" onclick="return confirm('Are you sure you want to delete this review?')">Delete</a>
+            <a href="/reviews/vehicle/<%= review.inv_id %>" class="btn btn-small btn-secondary">View All Reviews</a>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
